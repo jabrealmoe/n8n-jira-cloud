@@ -1,0 +1,28 @@
+modules:
+  trigger:
+    - key: n8n
+      function: main
+      events:
+        - avi:jira:created:issue
+      filter:
+        ignoreSelf: false
+        expression: event.issue.fields.summary != null
+  function:
+    - key: main
+      handler: index.run
+app:
+  runtime:
+    name: nodejs22.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/85a3f6eb-15b6-4353-85cc-c69c65c208fd
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+  external:
+    fetch:
+      backend:
+        - 'jabreal.app.n8n.cloud'
+
+
