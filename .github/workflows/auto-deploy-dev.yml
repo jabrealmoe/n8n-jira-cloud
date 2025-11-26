@@ -1,0 +1,44 @@
+name: Auto Deploy to Development
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy-dev:
+    name: Auto Deploy to Development
+    runs-on: ubuntu-latest
+    environment: development
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Validate Forge manifest
+        run: |
+          npm install -g @forge/cli@latest
+          forge lint
+      
+      - name: Authenticate with Forge
+        run: |
+          npm install -g @forge/cli@latest
+          echo "${{ secrets.FORGE_API_TOKEN }}" | forge login --api-token
+      
+      - name: Deploy to Development
+        run: |
+          forge deploy --non-interactive -e development
+

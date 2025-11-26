@@ -1,9 +1,10 @@
 import api, { route } from '@forge/api';
 
-// n8n webhook URL - configured via environment variable
-// Set different URLs for each environment using: forge variables:set N8N_WEBHOOK_URL <url> --environment <env>
+// n8n webhook URL - must be configured via environment variable
+// Set different URLs for each environment using: forge variables:set N8N_WEBHOOK_URL <url> -e <env>
 // This allows you to use test URLs in development and production URLs in production
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'https://jabreal.app.n8n.cloud/webhook/3a386c57-e834-4b90-81d9-02ddf5bb027d';
+// The URL is not stored in code for security reasons
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
 const WEBTRIGGER_API_KEY = process.env.WEBTRIGGER_API_KEY || 'your-secret-api-key-change-this';
 
@@ -75,6 +76,13 @@ export async function run(event, context) {
                 }
 
                 // Call n8n webhook with original issue data
+                // Check if webhook URL is configured
+                if (!N8N_WEBHOOK_URL) {
+                        console.error('⚠️ N8N_WEBHOOK_URL environment variable is not set. Skipping webhook call.');
+                        console.error('   To fix: Run forge variables set N8N_WEBHOOK_URL <url> -e <environment>');
+                        return; // Exit early if webhook URL is not configured
+                }
+
                 try {
                         console.log('Calling n8n webhook...');
                         const n8nResponse = await fetch(N8N_WEBHOOK_URL, {

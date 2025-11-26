@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Validate Forge manifest
+        run: |
+          npm install -g @forge/cli@latest
+          forge lint
+      
+      - name: Authenticate with Forge
+        run: |
+          npm install -g @forge/cli@latest
+          echo "${{ secrets.FORGE_API_TOKEN }}" | forge login --api-token
+      
+      - name: Deploy to Forge
+        run: |
+          forge deploy --non-interactive -e ${{ github.event.inputs.environment }}
+
